@@ -227,6 +227,13 @@ if(vPageMap[5][0] == '1'){
 		MenuArray[iCount++] = new MenuNodeConstruction(2, "FW Upgrade", "/cgi-bin/upgrade.asp", "");
 }
 
+// User Added Features
+MenuArray[iCount++] = new MenuNodeConstruction(1, "User Added Features", "/cgi-bin/user-features.asp", "");
+MenuArray[iCount++] = new MenuNodeConstruction(2, "DNS & AdBlock", "/cgi-bin/user-features.asp", "");
+MenuArray[iCount++] = new MenuNodeConstruction(2, "LAN IP Config", "/cgi-bin/user-features.asp", "");
+MenuArray[iCount++] = new MenuNodeConstruction(2, "Operating Modes", "/cgi-bin/user-features.asp", "");
+
+
 //Diag->6
 if(vPageMap[6][0] == '1')
 {

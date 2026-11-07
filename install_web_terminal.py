@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """
-Uniway UW-311VPW Web Terminal Deployment Script
-Integrates the root terminal directly into the router's web management interface:
-  - Adds 'Terminal' submenu to Status: [Device | WAN | LAN | VoIP | Terminal]
-  - Adds '>_ TERMINAL' button in the bottom-left orange box of the dashboard
-  - Embedded page: http://192.168.1.1/cgi-bin/sta-terminal.asp
+Uniway UW-311VPW Custom Features & Terminal Installer
+Deploys:
+  1. In-Page Web Root Terminal: /cgi-bin/sta-terminal.asp
+  2. User Added Features Page: /cgi-bin/user-features.asp
+     - Multi-Provider DNS with AdGuard / Cloudflare Ad-Blocking & Failover
+     - LAN IP & Subnet Config with Permanent Flash ROMFILE Commit (192.168.10.0/24)
+     - Operating Modes (Optical Gateway, Access Point, Wireless Bridge) & 4-Port LAN Unlock
+  3. Custom API Backend: /cgi-bin/custom_api.cgi
+  4. Menu Integration: /JS/menu.js
 """
 
 import sys
@@ -14,9 +18,14 @@ import urllib.error
 
 ROUTER_IP = "192.168.1.1"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DEVICE_FILE = os.path.join(BASE_DIR, "sta-device_patched.asp")
-TERM_FILE = os.path.join(BASE_DIR, "sta-terminal.asp")
-MENU_FILE = os.path.join(BASE_DIR, "menu.js")
+
+FILES = [
+    ("sta-terminal.asp", os.path.join(BASE_DIR, "sta-terminal.asp")),
+    ("sta-device.asp", os.path.join(BASE_DIR, "sta-device_patched.asp")),
+    ("user-features.asp", os.path.join(BASE_DIR, "user-features.asp")),
+    ("custom_api.cgi", os.path.join(BASE_DIR, "custom_api.cgi")),
+    ("menu.js", os.path.join(BASE_DIR, "menu.js")),
+]
 
 def run_exec(cmd):
     try:
@@ -101,19 +110,15 @@ chmod 755 /tmp/cgi-bin/upload.cgi
     run_exec(setup_sh)
 
     # 2. Upload files
-    print("[*] Uploading sta-terminal.asp...")
-    r1 = upload_file("sta-terminal.asp", TERM_FILE)
-    print(f"[+] sta-terminal.asp: {r1}")
+    for remote_name, file_path in FILES:
+        if not os.path.exists(file_path):
+            print(f"[-] Warning: {file_path} not found!")
+            continue
+        print(f"[*] Uploading {remote_name}...")
+        res = upload_file(remote_name, file_path)
+        print(f"[+] {remote_name}: {res}")
 
-    print("[*] Uploading sta-device.asp...")
-    r2 = upload_file("sta-device.asp", DEVICE_FILE)
-    print(f"[+] sta-device.asp: {r2}")
-
-    print("[*] Uploading menu.js...")
-    r3 = upload_file("menu.js", MENU_FILE)
-    print(f"[+] menu.js: {r3}")
-
-    print("\n[SUCCESS] Native in-page Web Terminal is live!")
+    print("\n[SUCCESS] Custom Features and Web Terminal are live!")
     print("Open http://192.168.1.1/ in your browser and refresh.")
 
 if __name__ == "__main__":
