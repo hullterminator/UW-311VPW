@@ -1,0 +1,90 @@
+================================================================================
+[!] SANITIZED FOR PUBLIC RELEASE
+Notice: All personal identification data (MAC, GPON SN, PPPoE credentials,
+private Wi-Fi keys) has been sanitized and replaced with [DUMMY_*] labels.
+================================================================================
+
+================================================================================
+                    DEVICE HARDWARE & CREDENTIALS SUMMARY
+================================================================================
+
+[ DEVICE IDENTIFICATION ]
+--------------------------------------------------------------------------------
+Hardware Model           : UW-311VPW (Uniway / Uniword XPON ONU Gateway)
+Main SoC                 : EcoNet EN751221 (MediaTek subsidiary)
+CPU Core                 : MIPS 34Kc Rev 00019558 @ 900.00 MHz (SMP 4 TCs, 2 VPEs)
+RAM Memory               : 64 MB DDR2 (DRAMC V1.2.2 @ DDR-800)
+SPI Flash Memory         : 16 MiB (128 Mbit) GigaDevice GD25Q128B (Base: 0xbc000000)
+Operating System         : Linux 2.6.36 SMP (Buildroot 2012.05, GCC 4.3.6)
+Firmware Platform        : China Telecom E8-C HGW (e8c v1.0)
+Hardware MAC Address     : [DUMMY_MAC_AA:BB:CC:DD:EE:FF]
+GPON Serial Number (SN)  : [DUMMY_GPON_SN_UWTC00000000] (Vendor ID: UWTC, Hex SN: 00000000)
+Default LOID             : 0[DUMMY_PPPOE_PASS]789 (Password: empty)
+
+
+[ SYSTEM ACCESS CREDENTIALS ]
+--------------------------------------------------------------------------------
+1. Serial UART Console (COM11 @ 115200 8-N-1):
+   - Prompt              : tc login:  (hostname is "tc")
+   - Username            : admin
+   - Password            : admin!@#$
+   - Shell Privilege     : Full Root Access (#)
+
+2. Web Management Interface (http://192.168.1.1/):
+   - Standard Admin User : admin
+   - Standard Admin Pass : [DUMMY_WEB_ADMIN_PASS]
+
+   - SuperAdmin User     : telecomadmin
+   - SuperAdmin Pass     : nE7jA%5m
+
+3. Network Services:
+   - FTP Server (Port 21): admin / admin!@#$
+   - Telnet (Port 23)    : admin (Pass hash: 30c9337e237966bc843127095f6f8a08)
+   - Dropbear SSH        : Enabled on Port 22
+
+
+[ NETWORK & WI-FI CONFIGURATION ]
+--------------------------------------------------------------------------------
+Default LAN IP           : 192.168.1.1 / 255.255.255.0
+DHCP Address Pool        : 192.168.1.2 - 192.168.1.254 (Lease: 86400s)
+Wi-Fi 2.4GHz SSID        : [DUMMY_SSID_DEMO]
+Wi-Fi Security / WPA2 Key: [DUMMY_PPPOE_PASS]78 (AES / WPA-PSK + WPA2-PSK)
+WAN PPPoE Account        : [DUMMY_PPPOE_USER]
+WAN PPPoE Password       : [DUMMY_PPPOE_PASS]
+
+
+[ BOOTLOADER INTERFACE ]
+--------------------------------------------------------------------------------
+Bootloader               : Free Bootbase v2.0.0
+Command Prompt           : bldr>
+Baud Rate                : 115200 8-N-1 (Line ending: \r)
+Interrupt Window         : "Press any key in 3 secs to enter boot command mode."
+Kernel Boot Sequence     : 1. decomp        (Uncompresses kernel to RAM at 0x80002000)
+                           2. jump 80002000 (Executes kernel entrypoint)
+
+
+[ FLASH MEMORY PARTITION MAP (16 MiB SPI NOR FLASH) ]
+--------------------------------------------------------------------------------
+mtd0: 0x00000000 - 0x00020000 (128 KB)  : "bootloader"     -> mtd0_bootloader.bin
+mtd1: 0x00020000 - 0x00030000 (64 KB)   : "romfile"        -> mtd1_romfile.bin (Config XML)
+mtd2: 0x00030000 - 0x00189889 (~1.37 MB): "kernel"         -> Primary Linux Kernel
+mtd3: 0x00189889 - 0x007c9889 (~6.25 MB): "rootfs"         -> Primary SquashFS RootFS
+mtd4: 0x00030000 - 0x007e0000 (7.875 MB): "tclinux"        -> Primary Master Bundle
+mtd5: 0x007e0000 - 0x00939889 (~1.37 MB): "kernel_slave"   -> Dual-Boot Backup Kernel
+mtd6: 0x00939889 - 0x00f79889 (~6.25 MB): "rootfs_slave"   -> Dual-Boot Backup RootFS
+mtd7: 0x007e0000 - 0x00f90000 (7.875 MB): "tclinux_slave"  -> Dual-Boot Backup Bundle
+mtd8: 0x00f90000 - 0x01000000 (448 KB)  : "reservearea"    -> mtd8_reservearea.bin (Cal/MAC)
+
+
+[ PROJECT REPOSITORY DUMP FILES ]
+--------------------------------------------------------------------------------
+Path: C:\Users\ramakant\Desktop\antigravity\econet_en7512_dump\
+
+- DEVICE_DETAILS.txt          : This reference document
+- TECHNICAL_SPECIFICATIONS.md : In-depth architecture specification
+- mtd0_bootloader.bin         : 128 KB raw bootloader partition
+- mtd1_romfile.bin            : 64 KB compressed NVRAM partition
+- romfile_decompressed.xml    : 65 KB fully decrypted configuration XML
+- mtd8_reservearea.bin        : 448 KB calibration, MAC, and golden ROM sector
+- flash_dumper.py             : Automated SPI flash memory dumper script
+================================================================================
