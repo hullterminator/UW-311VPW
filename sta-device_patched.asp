@@ -3,7 +3,7 @@
 <META http-equiv=Content-Language content=zh-cn>
 <META http-equiv=Content-Type content="text/html; charset=UTF-8"><LINK 
 href="/JS/stylemain.css" type=text/css rel=stylesheet>
-<SCRIPT language=javascript src="/JS/menu.js"></SCRIPT>
+<SCRIPT language=javascript src="/JS/menu.js?v=20261107_02"></SCRIPT>
 
 <SCRIPT language=javascript src="/JS/util.js"></SCRIPT>
 

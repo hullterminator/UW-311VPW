@@ -11,6 +11,7 @@ read_post() {
 }
 
 ACTION="$QUERY_STRING"
+ACTION="${ACTION#action=}"
 BODY=$(read_post)
 
 get_param() {

@@ -340,5 +340,3 @@ function DisplayLocation(Selected_Menu)
 	var Menu = Selected_Menu.split("->");
 	getElement('LocationDisplay').innerHTML = Menu[0];
 }
-
-___PWD_END___:/boaroot/cgi-bin
