@@ -1,4 +1,3 @@
-cat /boaroot/cgi-bin/sta-device.asp
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML><HEAD><TITLE>Device Information</TITLE>
 <META http-equiv=Content-Language content=zh-cn>
@@ -2268,9 +2267,9 @@ PacketInfo = [["0","0","0","0","0","0","0","0","0"],null];
         border=0><TBODY>
         <TR>
           <TD width=164 bgColor=#ef8218 align=center valign=middle style="padding:4px;">
-            <a href="/cgi-bin/terminal.cgi" target="_blank" style="text-decoration:none;">
+            <a href="/cgi-bin/sta-terminal.asp" style="text-decoration:none;">
               <button type="button" style="background:#090d13;color:#39d353;border:2px solid #39d353;border-radius:4px;padding:6px 14px;font-family:Consolas,monospace;font-size:12px;font-weight:bold;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,0.4);transition:all 0.2s;" onmouseover="this.style.background='#161b22';this.style.color='#58a6ff';this.style.borderColor='#58a6ff';" onmouseout="this.style.background='#090d13';this.style.color='#39d353';this.style.borderColor='#39d353';">
-                &gt;_ TERMINAL &#x2197;
+                &gt;_ TERMINAL
               </button>
             </a>
           </TD>

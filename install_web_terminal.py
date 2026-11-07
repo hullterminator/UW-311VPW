@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Uniway UW-311VPW Dedicated Web Terminal Installer
-Deploys a standalone full-page authentic Linux/Windows style terminal at:
-  http://192.168.1.1/cgi-bin/terminal.cgi
-And adds the button in the bottom-left orange box of the router web management dashboard:
-  http://192.168.1.1/
+Uniway UW-311VPW Web Terminal Deployment Script
+Integrates the root terminal directly into the router's web management interface:
+  - Adds 'Terminal' submenu to Status: [Device | WAN | LAN | VoIP | Terminal]
+  - Adds '>_ TERMINAL' button in the bottom-left orange box of the dashboard
+  - Embedded page: http://192.168.1.1/cgi-bin/sta-terminal.asp
 """
 
 import sys
@@ -14,8 +14,9 @@ import urllib.error
 
 ROUTER_IP = "192.168.1.1"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PATCH_FILE = os.path.join(BASE_DIR, "sta-device_patched.asp")
-TERM_FILE = os.path.join(BASE_DIR, "terminal.asp")
+DEVICE_FILE = os.path.join(BASE_DIR, "sta-device_patched.asp")
+TERM_FILE = os.path.join(BASE_DIR, "sta-terminal.asp")
+MENU_FILE = os.path.join(BASE_DIR, "menu.js")
 
 def run_exec(cmd):
     try:
@@ -44,16 +45,19 @@ def upload_file(remote_name, file_path):
 def main():
     print(f"[*] Targeting router at http://{ROUTER_IP}...")
     
-    if not os.path.exists(PATCH_FILE) or not os.path.exists(TERM_FILE):
-        print("[-] Error: Missing sta-device_patched.asp or terminal.asp")
-        sys.exit(1)
-
-    # 1. Setup /tmp/cgi-bin, bind mount, and CGI handlers
+    # 1. Setup /tmp/cgi-bin, /tmp/html_js, and bind mounts
     setup_sh = """
 if [ ! -d /tmp/cgi-bin ]; then
     cp -r /boaroot/cgi-bin /tmp/cgi-bin
 fi
 mount | grep -q "/boaroot/cgi-bin" || mount -o bind /tmp/cgi-bin /boaroot/cgi-bin
+
+if [ ! -d /tmp/html_js ]; then
+    mkdir -p /tmp/html_js
+    cp -r /boaroot/html/JS/* /tmp/html_js/
+fi
+chmod -R 755 /tmp/html_js
+mount | grep -q "/boaroot/html/JS" || mount -o bind /tmp/html_js /boaroot/html/JS
 
 cat > /tmp/cgi-bin/exec.cgi << 'EOF'
 #!/bin/sh
@@ -81,7 +85,9 @@ echo "Content-Type: text/plain"
 echo ""
 
 TARGET="/tmp/cgi-bin/sta-device.asp"
-if [ -n "$QUERY_STRING" ]; then
+if [ "$QUERY_STRING" = "menu.js" ]; then
+    TARGET="/tmp/html_js/menu.js"
+elif [ -n "$QUERY_STRING" ]; then
     TARGET="/tmp/cgi-bin/$QUERY_STRING"
 fi
 
@@ -90,31 +96,25 @@ chmod 755 "$TARGET"
 ls -l "$TARGET"
 EOF
 chmod 755 /tmp/cgi-bin/upload.cgi
-
-cat > /tmp/cgi-bin/terminal.cgi << 'EOF'
-#!/bin/sh
-echo "Content-Type: text/html; charset=utf-8"
-echo "Cache-Control: no-cache"
-echo ""
-cat /tmp/cgi-bin/terminal.html
-EOF
-chmod 755 /tmp/cgi-bin/terminal.cgi
 """
-    print("[*] Configuring CGI overlay and backend handlers...")
+    print("[*] Ensuring overlays and handlers are active...")
     run_exec(setup_sh)
 
     # 2. Upload files
-    print("[*] Uploading terminal UI...")
-    res1 = upload_file("terminal.html", TERM_FILE)
-    print(f"[+] terminal.html: {res1}")
+    print("[*] Uploading sta-terminal.asp...")
+    r1 = upload_file("sta-terminal.asp", TERM_FILE)
+    print(f"[+] sta-terminal.asp: {r1}")
 
-    print("[*] Uploading patched sta-device.asp...")
-    res2 = upload_file("sta-device.asp", PATCH_FILE)
-    print(f"[+] sta-device.asp: {res2}")
+    print("[*] Uploading sta-device.asp...")
+    r2 = upload_file("sta-device.asp", DEVICE_FILE)
+    print(f"[+] sta-device.asp: {r2}")
 
-    print("\n[SUCCESS] Dedicated Full-Page Terminal is live!")
-    print("Direct Terminal URL:  http://192.168.1.1/cgi-bin/terminal.cgi")
-    print("Router Web Dashboard: http://192.168.1.1/")
+    print("[*] Uploading menu.js...")
+    r3 = upload_file("menu.js", MENU_FILE)
+    print(f"[+] menu.js: {r3}")
+
+    print("\n[SUCCESS] Native in-page Web Terminal is live!")
+    print("Open http://192.168.1.1/ in your browser and refresh.")
 
 if __name__ == "__main__":
     main()
